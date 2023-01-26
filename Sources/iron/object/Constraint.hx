@@ -11,7 +11,17 @@ class Constraint {
 	}
 
 	public function apply(transform: Transform) {
-		if (target == null && raw.target != null) target = Scene.active.getChild(raw.target).transform;
+		if (target == null) {
+			if (raw.target != null) {
+				var obj = Scene.active.getChildren(true);
+				for (obji in obj) {
+					if (obji.name == raw.target) {
+						target = obji.transform;
+					}
+				}
+			}
+			return;
+		}
 
 		if (raw.type == "COPY_LOCATION") {
 			if (raw.use_x) {
