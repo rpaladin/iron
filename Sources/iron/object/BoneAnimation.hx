@@ -200,8 +200,8 @@ class BoneAnimation extends Animation {
 		setMats();
 	}
 
-	override public function play(action = "", onComplete: Void->Void = null, blendTime = 0.2, speed = 1.0, loop = true) {
-		super.play(action, onComplete, blendTime, speed, loop);
+	override public function play(action = "", onComplete: Void->Void = null, animBegin = -1, animEnd = -1, blendTime = 0.2, speed = 1.0, loop = true) {
+		super.play(action, onComplete, animBegin, animEnd, blendTime, speed, loop);
 		if (action != "") {
 			blendTime > 0 ? setActionBlend(action) : setAction(action);
 		}
@@ -467,7 +467,8 @@ class BoneAnimation extends Animation {
 	public override function totalFrames(): Int {
 		if (skeletonBones == null) return 0;
 		var track = skeletonBones[0].anim.tracks[0];
-		return Std.int(track.frames[track.frames.length - 1] - track.frames[0]);
+		if (animEnd == -1) return Std.int(track.frames[track.frames.length - 1] - track.frames[0]);
+		else return Std.int(track.frames[animEnd - 1] - track.frames[animBegin]);
 	}
 
 	public function getBone(name: String): TObj {

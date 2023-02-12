@@ -27,8 +27,8 @@ class ObjectAnimation extends Animation {
 		return null;
 	}
 
-	override public function play(action = "", onComplete: Void->Void = null, blendTime = 0.0, speed = 1.0, loop = true) {
-		super.play(action, onComplete, blendTime, speed, loop);
+	override public function play(action = "", onComplete: Void->Void = null, animBegin = -1, animEnd = -1, blendTime = 0.0, speed = 1.0, loop = true) {
+		super.play(action, onComplete, animBegin, animEnd, blendTime, speed, loop);
 		if (this.action == "" && oactions[0] != null) this.action = oactions[0].objects[0].name;
 		oaction = getAction(this.action);
 		if (oaction != null) {
@@ -81,6 +81,7 @@ class ObjectAnimation extends Animation {
 		if (anim == null) return;
 
 		var total = anim.end * frameTime - anim.begin * frameTime;
+		if (animEnd > -1) total = animEnd * frameTime - animBegin * frameTime;
 
 		if (anim.has_delta) {
 			var t = transform;
@@ -101,6 +102,7 @@ class ObjectAnimation extends Animation {
 
 			// End of current time range
 			var t = time + anim.begin * frameTime;
+			if (animEnd > -1) t = time + animBegin* frameTime;
 			while (checkFrameIndexT(track.frames, t)) frameIndex += sign;
 
 			// No data for this track at current time
@@ -159,6 +161,7 @@ class ObjectAnimation extends Animation {
 
 	override public function totalFrames(): Int {
 		if (oaction == null || oaction.anim == null) return 0;
-		return oaction.anim.end - oaction.anim.begin;
+		if (animEnd == -1) return oaction.anim.end - oaction.anim.begin;
+		else return animEnd - animBegin;
 	}
 }

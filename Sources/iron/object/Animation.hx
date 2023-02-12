@@ -35,6 +35,8 @@ class Animation {
 	public var frameIndex = 0;
 	public var onComplete: Void->Void = null;
 	public var paused = false;
+	public var animBegin = -1;
+	public var animEnd = -1;
 	var frameTime: FastFloat = 1 / 60;
 
 	var blendTime: FastFloat = 0.0;
@@ -53,7 +55,7 @@ class Animation {
 		play();
 	}
 
-	public function play(action = "", onComplete: Void->Void = null, blendTime = 0.0, speed = 1.0, loop = true) {
+	public function play(action = "", onComplete: Void->Void = null, animBegin = -1, animEnd = -1, blendTime = 0.0, speed = 1.0, loop = true) {
 		if (blendTime > 0) {
 			this.blendTime = blendTime;
 			this.blendCurrent = 0.0;
@@ -64,6 +66,8 @@ class Animation {
 		else frameIndex = -1;
 		this.action = action;
 		this.onComplete = onComplete;
+		this.animBegin = animBegin;
+		this.animEnd = animEnd;
 		this.speed = speed;
 		this.loop = loop;
 		paused = false;
@@ -97,20 +101,32 @@ class Animation {
 	}
 
 	function isTrackEnd(track: TTrack): Bool {
-		return speed > 0 ?
+		if (animEnd == -1) return speed > 0 ?
 			frameIndex >= track.frames.length - 1 :
 			frameIndex <= 0;
+		else return speed > 0 ?
+			frameIndex >= animEnd - 1 :
+			frameIndex <= animBegin;
 	}
 
 	inline function checkFrameIndex(frameValues: Uint32Array): Bool {
-		return speed > 0 ?
+		if (animEnd == -1) return speed > 0 ?
 			((frameIndex + 1) < frameValues.length && time > frameValues[frameIndex + 1] * frameTime) :
+			((frameIndex - 1) > -1 && time < frameValues[frameIndex - 1] * frameTime);
+		else return speed > 0 ?
+			((frameIndex + 1) < animEnd && time > frameValues[frameIndex + 1] * frameTime) :
 			((frameIndex - 1) > -1 && time < frameValues[frameIndex - 1] * frameTime);
 	}
 
 	function rewind(track: TTrack) {
-		frameIndex = speed > 0 ? 0 : track.frames.length - 1;
-		time = track.frames[frameIndex] * frameTime;
+		if (animEnd == -1) {
+			frameIndex = speed > 0 ? 0 : track.frames.length - 1;
+			time = track.frames[frameIndex] * frameTime;
+		} else {
+			frameIndex = speed > 0 ? 0 : animEnd - 1;
+			time = track.frames[frameIndex] * frameTime;
+
+		}
 	}
 
 	function updateTrack(anim: TAnimation) {
